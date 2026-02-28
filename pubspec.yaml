@@ -1,0 +1,45 @@
+name: myproject
+description: "Smart Student Budget Tracker - Flutter Project."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.11.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  firebase_core: ^4.4.0
+  cloud_firestore: ^6.1.2
+  firebase_auth: ^6.1.4
+  image_picker: ^1.2.1
+  firebase_storage: ^13.0.6
+  provider: ^6.1.5+1
+  url_launcher: ^6.3.2
+  fl_chart: ^1.1.1
+  shared_preferences: ^2.2.0
+  google_mlkit_text_recognition: ^0.11.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  flutter_native_splash: ^2.4.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/logo.png
+    - assets/images/onboarding.png
+    - assets/images/login.png
+    - assets/images/Currency.png
+
+flutter_native_splash:
+  color: "#FFFFFF"
+  image: assets/images/logo.png
+  android_12:
+    image: assets/images/logo.png
+    color: "#FFFFFF"
+  fullscreen: true

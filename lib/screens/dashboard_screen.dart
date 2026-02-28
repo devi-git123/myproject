@@ -1,0 +1,386 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+import '../providers/theme_provider_screen.dart';
+import 'edit_profile_screen.dart';
+import 'add_category_screen.dart';
+import 'settings_screen.dart';
+import 'login_screen.dart';
+import 'my_transactions_screen.dart';
+import 'analytics_screen.dart';
+import 'notifications_screen.dart';
+
+const Color kTealColor = Color(0xFF2B90B6);
+const Color kLightTeal = Color(0xFF76C8D5);
+
+class DashboardScreen extends StatelessWidget {
+  const DashboardScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final bool isDark = themeProvider.isDarkMode;
+    final String? uid = FirebaseAuth.instance.currentUser?.uid;
+
+    return Scaffold(
+      key: scaffoldKey,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      drawer: _buildSidebar(context, isDark, themeProvider),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 15.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildHeader(context, scaffoldKey, isDark, uid),
+              const SizedBox(height: 30),
+
+              // TOTAL BALANCE CARD
+              StreamBuilder<DocumentSnapshot>(
+                stream: FirebaseFirestore.instance.collection('users').doc(uid).snapshots(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData || !snapshot.data!.exists) {
+                    return _buildBalanceCard("LKR 0.00", isDark);
+                  }
+                  var data = snapshot.data!.data() as Map<String, dynamic>;
+                  double balance = (data['totalBalance'] ?? 0.0).toDouble();
+                  return _buildBalanceCard("LKR ${balance.toStringAsFixed(2)}", isDark);
+                },
+              ),
+              const SizedBox(height: 30),
+
+              // INCOME & EXPENSE CARDS
+              StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance.collection('users').doc(uid).collection('transactions').snapshots(),
+                builder: (context, snapshot) {
+                  double totalIncome = 0;
+                  double totalExpense = 0;
+
+                  if (snapshot.hasData) {
+                    for (var doc in snapshot.data!.docs) {
+                      var data = doc.data() as Map<String, dynamic>;
+                      double amount = (data['amount'] ?? 0).toDouble();
+                      if (data['type'] == 'Income') {
+                        totalIncome += amount;
+                      } else {
+                        totalExpense += amount;
+                      }
+                    }
+                  }
+
+                  return Row(
+                    children: [
+                      _buildStatCard("Income", "LKR ${totalIncome.toStringAsFixed(0)}", Icons.arrow_downward, Colors.green, isDark),
+                      const SizedBox(width: 15),
+                      _buildStatCard("Expense", "LKR ${totalExpense.toStringAsFixed(0)}", Icons.arrow_upward, Colors.redAccent, isDark),
+                    ],
+                  );
+                },
+              ),
+              const SizedBox(height: 30),
+
+              _buildSectionHeader("Categories", () {}),
+              const SizedBox(height: 10),
+              _buildCategoryList(isDark, uid),
+              const SizedBox(height: 30),
+
+              _buildSectionHeader("Recent Transactions", () {}),
+              const SizedBox(height: 15),
+              _buildTransactionList(isDark, uid),
+            ],
+          ),
+        ),
+      ),
+      bottomNavigationBar: _buildBottomNav(context, isDark),
+    );
+  }
+
+  // SECTION HEADER
+  Widget _buildSectionHeader(String title, VoidCallback onSeeAll) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+        TextButton(onPressed: onSeeAll, child: const Text("See All", style: TextStyle(color: kTealColor))),
+      ],
+    );
+  }
+
+  // HEADER ROW
+  Widget _buildHeader(BuildContext context, GlobalKey<ScaffoldState> key, bool isDark, String? uid) {
+    return Row(
+      children: [
+        IconButton(
+          icon: const Icon(Icons.menu, color: kTealColor, size: 30),
+          onPressed: () => key.currentState?.openDrawer(),
+        ),
+        const SizedBox(width: 10),
+        const Text("Hi, Welcome back!", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: kTealColor)),
+        const Spacer(),
+        StreamBuilder<DocumentSnapshot>(
+          stream: FirebaseFirestore.instance.collection('users').doc(uid).snapshots(),
+          builder: (context, snapshot) {
+            String? imageUrl;
+            if (snapshot.hasData && snapshot.data!.exists) {
+              imageUrl = (snapshot.data!.data() as Map<String, dynamic>)['profileImage'];
+            }
+            return GestureDetector(
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const EditProfileScreen())),
+              child: CircleAvatar(
+                radius: 24,
+                backgroundColor: kTealColor,
+                backgroundImage: imageUrl != null ? NetworkImage(imageUrl) : null,
+                child: imageUrl == null ? const Icon(Icons.person, size: 30, color: Colors.white) : null,
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBalanceCard(String balanceText, bool isDark) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(25),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(colors: [kTealColor, kLightTeal], begin: Alignment.topLeft, end: Alignment.bottomRight),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [BoxShadow(color: kTealColor.withOpacity(.3), blurRadius: 10, offset: const Offset(0, 5))],
+      ),
+      child: Column(
+        children: [
+          const Text("Current Balance", style: TextStyle(color: Colors.white70, fontSize: 16)),
+          const SizedBox(height: 10),
+          Text(balanceText, style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatCard(String title, String amount, IconData icon, Color color, bool isDark) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(15),
+        decoration: BoxDecoration(
+          color: isDark ? Colors.grey[900] : Colors.grey[100],
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: color, size: 20),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                  FittedBox(child: Text(amount, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14))),
+                ],
+              ),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSidebar(BuildContext context, bool isDark, ThemeProvider themeProvider) {
+    final String? uid = FirebaseAuth.instance.currentUser?.uid;
+
+    return Drawer(
+      child: Column(
+        children: [
+          StreamBuilder<DocumentSnapshot>(
+            stream: FirebaseFirestore.instance.collection('users').doc(uid).snapshots(),
+            builder: (context, snapshot) {
+              String name = "Loading...";
+              String email = FirebaseAuth.instance.currentUser?.email ?? "";
+              String? profileImg;
+
+              if (snapshot.hasData && snapshot.data!.exists) {
+                var data = snapshot.data!.data() as Map<String, dynamic>;
+                name = data['name'] ?? "New User";
+                profileImg = data['profileImage'];
+              }
+
+              return UserAccountsDrawerHeader(
+                decoration: const BoxDecoration(color: kTealColor),
+                currentAccountPicture: CircleAvatar(
+                  backgroundColor: Colors.white,
+                  backgroundImage: profileImg != null ? NetworkImage(profileImg) : null,
+                  child: profileImg == null ? const Icon(Icons.person, color: kTealColor, size: 40) : null,
+                ),
+                accountName: Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                accountEmail: Text(email),
+              );
+            },
+          ),
+          _buildDrawerItem(icon: Icons.person_outline, title: "Edit Profile", onTap: () {
+            Navigator.pop(context);
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const EditProfileScreen()));
+          }),
+          SwitchListTile(
+            secondary: Icon(isDark ? Icons.dark_mode : Icons.light_mode, color: kTealColor),
+            title: const Text("Dark Mode"),
+            value: isDark,
+            activeThumbColor: kTealColor,
+            onChanged: (val) {
+              HapticFeedback.selectionClick();
+              themeProvider.toggleTheme(val);
+            },
+          ),
+          _buildDrawerItem(icon: Icons.settings_outlined, title: "Settings", onTap: () {
+            Navigator.pop(context);
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const SettingsScreen()));
+          }),
+          const Spacer(),
+          const Divider(),
+          _buildDrawerItem(icon: Icons.logout, title: "Logout", color: Colors.redAccent, onTap: () async {
+            await FirebaseAuth.instance.signOut();
+            if (!context.mounted) return;
+            Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (context) => const LoginScreen()),
+                    (route) => false
+            );
+          }),
+          const SizedBox(height: 20),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDrawerItem({required IconData icon, required String title, required VoidCallback onTap, Color color = kTealColor}) {
+    return ListTile(
+      leading: Icon(icon, color: color),
+      title: Text(title, style: TextStyle(color: color == Colors.redAccent ? Colors.redAccent : null)),
+      onTap: onTap,
+    );
+  }
+
+  // --- CATEGORY LIST FIXED FOR RELEASE ---
+  Widget _buildCategoryList(bool isDark, String? uid) {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance.collection('users').doc(uid).collection('categories').snapshots(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) return const SizedBox(height: 50);
+        final docs = snapshot.data!.docs;
+        if (docs.isEmpty) return const Text("No categories added");
+
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: docs.map((doc) {
+              final data = doc.data() as Map<String, dynamic>;
+              final int iconCode = data['iconCode'] ?? 58947; // fallback
+              return Padding(
+                padding: const EdgeInsets.only(right: 15),
+                child: Column(
+                  children: [
+                    CircleAvatar(
+                      radius: 25,
+                      backgroundColor: isDark ? Colors.grey[850] : Colors.grey[200],
+                      child: Icon(
+                        IconData(iconCode, fontFamily: 'MaterialIcons'), // dynamic icon
+                        color: kTealColor,
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(data['name'] ?? "New", style: const TextStyle(fontSize: 12)),
+                  ],
+                ),
+              );
+            }).toList(),
+          ),
+        );
+      },
+    );
+  }
+
+  // --- TRANSACTIONS LIST FIXED FOR RELEASE ---
+  Widget _buildTransactionList(bool isDark, String? uid) {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance.collection('users').doc(uid).collection('transactions').orderBy('timestamp', descending: true).limit(10).snapshots(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) return const SizedBox();
+        final docs = snapshot.data!.docs;
+        if (docs.isEmpty) return const Text("No transactions yet.");
+
+        return Column(
+          children: docs.map((doc) {
+            final t = doc.data() as Map<String, dynamic>;
+            final bool isExpense = t['type'] == 'Expense';
+            final int iconCode = t['iconCode'] ?? 58947; // fallback code
+
+            return Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: isDark ? Colors.grey[900] : Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: isDark ? Colors.grey[800]! : Colors.grey[200]!),
+              ),
+              child: ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: CircleAvatar(
+                  backgroundColor: kTealColor.withOpacity(.1),
+                  child: Icon(
+                    IconData(iconCode, fontFamily: 'MaterialIcons'),
+                    color: kTealColor,
+                    size: 20,
+                  ),
+                ),
+                title: Text(t['categoryName'] ?? "Unknown", style: const TextStyle(fontWeight: FontWeight.w600)),
+                trailing: Text(
+                  "${isExpense ? '-' : '+'} LKR ${t['amount']}",
+                  style: TextStyle(fontWeight: FontWeight.bold, color: isExpense ? Colors.redAccent : Colors.green),
+                ),
+              ),
+            );
+          }).toList(),
+        );
+      },
+    );
+  }
+
+  Widget _buildBottomNav(BuildContext context, bool isDark) {
+    return Container(
+      height: 70,
+      margin: const EdgeInsets.fromLTRB(15, 0, 15, 15),
+      decoration: BoxDecoration(
+        color: kTealColor,
+        borderRadius: BorderRadius.circular(25),
+        boxShadow: [BoxShadow(color: kTealColor.withOpacity(.4), blurRadius: 15, offset: const Offset(0, 5))],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          GestureDetector(
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const MyTransactionsScreen())),
+            child: const Icon(Icons.home_rounded, color: Colors.white, size: 28),
+          ),
+          GestureDetector(
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const AnalyticsScreen())),
+            child: const Icon(Icons.bar_chart_rounded, color: Colors.white60, size: 28),
+          ),
+          GestureDetector(
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const AddCategoryScreen())),
+            child: const CircleAvatar(backgroundColor: Colors.white, radius: 24, child: Icon(Icons.add, color: kTealColor, size: 30)),
+          ),
+          GestureDetector(
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const NotificationsScreen())),
+            child: const Icon(Icons.notifications_none_rounded, color: Colors.white60, size: 28),
+          ),
+          GestureDetector(
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const SettingsScreen())),
+            child: const Icon(Icons.person_outline_rounded, color: Colors.white60, size: 28),
+          ),
+        ],
+      ),
+    );
+  }
+}
