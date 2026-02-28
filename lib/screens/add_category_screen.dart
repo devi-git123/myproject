@@ -11,19 +11,23 @@ class AddCategoryScreen extends StatefulWidget {
 }
 
 class _AddCategoryScreenState extends State<AddCategoryScreen> {
-  final Color kTealColor = const Color(0xFF2B90B6);
+  // Colors for different types
+  final Color kExpenseColor = const Color(0xFF2B90B6); // Original Teal
+  final Color kIncomeColor = const Color(0xFF2E7D32);  // Green
+
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
 
-  // No longer using _isLoading for the button because we navigate away instantly
   bool _isProcessing = false;
+  String _selectedType = 'Expense'; // Default type
   IconData _selectedIcon = Icons.restaurant;
 
   final List<IconData> _availableIcons = [
     Icons.restaurant, Icons.directions_bus, Icons.shopping_bag, Icons.school,
     Icons.health_and_safety, Icons.home, Icons.movie, Icons.flight,
     Icons.fitness_center, Icons.receipt_long, Icons.pets, Icons.electric_bolt,
-    Icons.water_drop, Icons.coffee, Icons.build, Icons.subscriptions
+    Icons.water_drop, Icons.coffee, Icons.build, Icons.subscriptions,
+    Icons.payments, Icons.trending_up, Icons.work, Icons.redeem // Added income-friendly icons
   ];
 
   @override
@@ -32,6 +36,9 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
     _amountController.dispose();
     super.dispose();
   }
+
+  // Get current theme color based on selection
+  Color get _currentColor => _selectedType == 'Expense' ? kExpenseColor : kIncomeColor;
 
   Future<void> _saveCategory() async {
     final String name = _nameController.text.trim();
@@ -45,7 +52,6 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
       return;
     }
 
-    // Set processing to prevent double-taps during the quick navigation
     setState(() => _isProcessing = true);
 
     try {
@@ -55,7 +61,6 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
       final double amount = double.tryParse(amountStr) ?? 0.0;
       final int iconCode = _selectedIcon.codePoint;
 
-      // 1. Prepare the Batch
       WriteBatch batch = FirebaseFirestore.instance.batch();
 
       DocumentReference categoryRef = FirebaseFirestore.instance
@@ -67,6 +72,7 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
       batch.set(categoryRef, {
         'name': name,
         'amount': amount,
+        'type': _selectedType, // Saved type here
         'iconCode': iconCode,
         'createdAt': FieldValue.serverTimestamp(),
       });
@@ -74,22 +80,15 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
       batch.set(transactionRef, {
         'categoryName': name,
         'amount': amount,
-        'type': 'Expense',
+        'type': _selectedType, // Saved type here
         'iconCode': iconCode,
         'timestamp': FieldValue.serverTimestamp(),
       });
 
-      // 2. TRIGGER THE WRITE (Do not 'await' this if you want instant navigation)
-      // Firebase will sync this in the background.
-      batch.commit().catchError((error) {
-        debugPrint("Background sync failed: $error");
-      });
+      batch.commit().catchError((error) => debugPrint("Sync failed: $error"));
 
-      // 3. NAVIGATE IMMEDIATELY
       HapticFeedback.lightImpact();
-      if (mounted) {
-        Navigator.pop(context);
-      }
+      if (mounted) Navigator.pop(context);
 
     } catch (e) {
       setState(() => _isProcessing = false);
@@ -104,21 +103,25 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text("Create Category", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
+        title: Text("Create $_selectedType", style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
         backgroundColor: Colors.white,
         elevation: 0,
-        iconTheme: IconThemeData(color: kTealColor),
+        iconTheme: IconThemeData(color: _currentColor),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 10),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // --- NEW: TYPE TOGGLE ---
+            _buildTypeToggle(),
+            const SizedBox(height: 25),
+
             _buildLabel("Category Name"),
             TextField(
               controller: _nameController,
               textCapitalization: TextCapitalization.words,
-              decoration: _inputStyle("e.g. Groceries", Icons.edit_note),
+              decoration: _inputStyle("e.g. ${_selectedType == 'Expense' ? 'Groceries' : 'Salary'}", Icons.edit_note),
             ),
             const SizedBox(height: 25),
 
@@ -146,9 +149,9 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 150),
                       decoration: BoxDecoration(
-                        color: isSelected ? kTealColor : Colors.white,
+                        color: isSelected ? _currentColor : Colors.white,
                         borderRadius: BorderRadius.circular(15),
-                        boxShadow: isSelected ? [BoxShadow(color: kTealColor.withValues(alpha: .3), blurRadius: 8, offset: const Offset(0, 4))] : [],
+                        boxShadow: isSelected ? [BoxShadow(color: _currentColor.withValues(alpha: .3), blurRadius: 8, offset: const Offset(0, 4))] : [],
                       ),
                       child: Icon(
                         _availableIcons[index],
@@ -178,16 +181,58 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
               child: ElevatedButton(
                 onPressed: _isProcessing ? null : _saveCategory,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: kTealColor,
+                  backgroundColor: _currentColor,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                   elevation: 0,
                 ),
                 child: _isProcessing
                     ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                    : const Text("Create Category", style: TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.bold)),
+                    : Text("Create $_selectedType", style: const TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.bold)),
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTypeToggle() {
+    return Container(
+      height: 50,
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(15),
+      ),
+      child: Row(
+        children: [
+          _typeButton("Expense"),
+          _typeButton("Income"),
+        ],
+      ),
+    );
+  }
+
+  Widget _typeButton(String type) {
+    bool isSelected = _selectedType == type;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
+          HapticFeedback.mediumImpact();
+          setState(() => _selectedType = type);
+        },
+        child: Container(
+          decoration: BoxDecoration(
+            color: isSelected ? (type == 'Expense' ? kExpenseColor : kIncomeColor) : Colors.transparent,
+            borderRadius: BorderRadius.circular(15),
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            type,
+            style: TextStyle(
+              color: isSelected ? Colors.white : Colors.black54,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ),
       ),
     );
@@ -203,7 +248,7 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
   InputDecoration _inputStyle(String hint, IconData icon) {
     return InputDecoration(
       hintText: hint,
-      prefixIcon: Icon(icon, color: kTealColor, size: 22),
+      prefixIcon: Icon(icon, color: _currentColor, size: 22),
       filled: true,
       fillColor: Colors.grey[100],
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
