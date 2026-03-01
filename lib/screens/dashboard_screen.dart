@@ -155,7 +155,7 @@ class DashboardScreen extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: const LinearGradient(colors: [kTealColor, kLightTeal], begin: Alignment.topLeft, end: Alignment.bottomRight),
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [BoxShadow(color: kTealColor.withOpacity(.3), blurRadius: 10, offset: const Offset(0, 5))],
+        boxShadow: [BoxShadow(color: kTealColor.withValues(alpha: .3), blurRadius: 10, offset: const Offset(0, 5))],
       ),
       child: Column(
         children: [
@@ -226,7 +226,7 @@ class DashboardScreen extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: data['type'] == 'Income' ? Colors.green.withOpacity(0.1) : kTealColor.withOpacity(0.1),
+                        color: data['type'] == 'Income' ? Colors.green.withValues(alpha: .1) : kTealColor.withValues(alpha: .1),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
@@ -273,11 +273,11 @@ class DashboardScreen extends StatelessWidget {
               decoration: BoxDecoration(
                 color: isDark ? Colors.grey[900] : Colors.white,
                 borderRadius: BorderRadius.circular(16),
-                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10)],
+                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: .02), blurRadius: 10)],
               ),
               child: ListTile(
                 leading: CircleAvatar(
-                  backgroundColor: isExpense ? kTealColor.withOpacity(.1) : Colors.green.withOpacity(.1),
+                  backgroundColor: isExpense ? kTealColor.withValues(alpha: .1) : Colors.green.withValues(alpha: .1),
                   child: Icon(
                     IconData(iconCode, fontFamily: 'MaterialIcons'),
                     color: isExpense ? kTealColor : Colors.green,
@@ -370,7 +370,7 @@ class DashboardScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: kTealColor,
         borderRadius: BorderRadius.circular(25),
-        boxShadow: [BoxShadow(color: kTealColor.withOpacity(.4), blurRadius: 15, offset: const Offset(0, 5))],
+        boxShadow: [BoxShadow(color: kTealColor.withValues(alpha: .4), blurRadius: 15, offset: const Offset(0, 5))],
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,

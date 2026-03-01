@@ -32,7 +32,7 @@ class OnboardingScreen extends StatelessWidget {
                   height: 140,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: kTealColor.withOpacity(0.1),
+                    color: kTealColor.withValues(alpha: .1),
                   ),
                   child: ClipOval(
                     child: Image.asset(

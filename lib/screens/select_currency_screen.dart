@@ -94,7 +94,7 @@ class _SelectCurrencyScreenState extends State<SelectCurrencyScreen> {
                   height: 100,
                   width: 100,
                   decoration: BoxDecoration(
-                    color: kTealColor.withOpacity(0.1),
+                    color: kTealColor.withValues(alpha: .1),
                     shape: BoxShape.circle,
                   ),
                   child: ClipOval(
@@ -138,7 +138,7 @@ class _SelectCurrencyScreenState extends State<SelectCurrencyScreen> {
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 200),
                           decoration: BoxDecoration(
-                            color: isSelected ? kTealColor.withOpacity(0.08) : Colors.grey[50],
+                            color: isSelected ? kTealColor.withValues(alpha: .08) : Colors.grey[50],
                             borderRadius: BorderRadius.circular(15),
                             border: Border.all(
                               color: isSelected ? kTealColor : Colors.grey.shade200,
