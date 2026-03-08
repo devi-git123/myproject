@@ -21,6 +21,7 @@ class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
   // --- LOGIC FUNCTIONS ---
+  // Finalized Settings Logic
 
   // 1. Backup Data Logic
   Future<void> _handleBackup(BuildContext context) async {
