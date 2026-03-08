@@ -9,10 +9,15 @@
       "client_info": {
         "mobilesdk_app_id": "1:1015364231733:android:529e27383c9b0696f5077c",
         "android_client_info": {
-          "package_name": "com.company.budget_tracker"
+          "package_name": "com.company.bugdet_tracker"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "1015364231733-c0rbuvjdvv5qotq9bki9354dt777un3u.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCZHHqpLqkuSySPgMc8Y9I0-P2K8WuQS1U"
@@ -20,7 +25,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1015364231733-c0rbuvjdvv5qotq9bki9354dt777un3u.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1015364231733-q5gvf19jo4t9r60g0a1b3eugh33jf18t.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.myproject"
+              }
+            }
+          ]
         }
       }
     }
