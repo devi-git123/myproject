@@ -7,9 +7,9 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:1015364231733:android:529e27383c9b0696f5077c",
+        "mobilesdk_app_id": "1:1015364231733:android:aa011f273a59a6c0f5077c",
         "android_client_info": {
-          "package_name": "com.company.bugdet_tracker"
+          "package_name": "com.company.budget_tracker"
         }
       },
       "oauth_client": [

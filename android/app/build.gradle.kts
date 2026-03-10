@@ -9,8 +9,7 @@ android {
     namespace = "com.company.budget_tracker"
     compileSdk = flutter.compileSdkVersion
 
-    defaultConfig {
-        applicationId = "com.company.budget_tracker"
+    defaultConfig {        applicationId = "com.company.budget_tracker"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
