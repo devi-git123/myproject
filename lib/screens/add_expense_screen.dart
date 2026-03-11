@@ -7,7 +7,7 @@ class AddExpenseScreen extends StatefulWidget {
   final String? receiptUrl;
 
 
-  const AddExpenseScreen({super.key, this.initialAmount, this.receiptUrl});
+  const AddExpenseScreen({super.key, thgit config user.name "nethaki"is.initialAmount, this.receiptUrl});
 
   @override
   State<AddExpenseScreen> createState() => _AddExpenseScreenState();
