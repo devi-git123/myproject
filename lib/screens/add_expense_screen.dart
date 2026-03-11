@@ -7,7 +7,7 @@ class AddExpenseScreen extends StatefulWidget {
   final String? receiptUrl;
 
 
-  const AddExpenseScreen({super.key, thgit config user.name "nethaki"is.initialAmount, this.receiptUrl});
+  const AddExpenseScreen({super.key, this.initialAmount, this.receiptUrl});
 
   @override
   State<AddExpenseScreen> createState() => _AddExpenseScreenState();
@@ -21,7 +21,6 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   @override
   void initState() {
     super.initState();
-
     _amountController = TextEditingController(text: widget.initialAmount ?? "");
   }
 
@@ -31,7 +30,6 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     _titleController.dispose();
     super.dispose();
   }
-
 
   Future<void> _saveExpense() async {
     if (_amountController.text.isEmpty) return;
@@ -59,7 +57,6 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Expense saved successfully!")),
         );
-
         Navigator.popUntil(context, (route) => route.isFirst);
       }
     } catch (e) {
@@ -108,7 +105,8 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                 children: [
                   Icon(Icons.cloud_done, color: Colors.green),
                   SizedBox(width: 10),
-                  Text("Receipt image linked successfully", style: TextStyle(color: Colors.green)),
+                  Text("Receipt image linked successfully",
+                      style: TextStyle(color: Colors.green)),
                 ],
               ),
             const SizedBox(height: 40),
@@ -121,7 +119,8 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                   foregroundColor: Colors.white,
                 ),
                 onPressed: _saveExpense,
-                child: const Text("Save Transaction", style: TextStyle(fontSize: 16)),
+                child: const Text("Save Transaction",
+                    style: TextStyle(fontSize: 16)),
               ),
             )
           ],
