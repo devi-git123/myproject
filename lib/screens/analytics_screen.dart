@@ -9,6 +9,7 @@ class AnalyticsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final String? uid = FirebaseAuth.instance.currentUser?.uid;
+    
 
     return Scaffold(
       appBar: AppBar(
