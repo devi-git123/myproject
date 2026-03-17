@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'signup_screen.dart';
 import 'reset_password_screen.dart';
 import 'select_currency_screen.dart';
+import 'dashboard_screen.dart';
 
 // Brand Colors
 const Color kTealColor = Color(0xFF2B90B6);
@@ -39,13 +41,24 @@ class _LoginScreenState extends State<LoginScreen> {
           password: _passwordController.text.trim(),
         );
 
-        // 1. ASYNC GAP FIX: Check if the screen is still active before navigating
+        // 1. Check if user has already completed setup
+        final uid = FirebaseAuth.instance.currentUser?.uid;
+        bool setupComplete = false;
+        if (uid != null) {
+          final doc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+          setupComplete = doc.data()?['setupComplete'] == true;
+        }
+
         if (!mounted) return;
 
-        // 2. Clear stack and move to currency selection
+        // 2. Existing users go to dashboard; new/incomplete users pick currency
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const SelectCurrencyScreen()),
+          MaterialPageRoute(
+            builder: (context) => setupComplete
+                ? const DashboardScreen()
+                : const SelectCurrencyScreen(),
+          ),
         );
 
       } on FirebaseAuthException catch (e) {

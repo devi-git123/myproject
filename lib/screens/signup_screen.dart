@@ -57,16 +57,9 @@ class _SignupScreenState extends State<SignupScreen> {
     HapticFeedback.mediumImpact();
 
     try {
-      // 1. Check for unique username first to avoid duplicate profiles
       String username = _usernameController.text.trim().toLowerCase();
-      bool taken = await _isUsernameTaken(username);
-      if (taken) {
-        _showError("This username is already taken. Try another.");
-        setState(() => _isLoading = false);
-        return;
-      }
 
-      // 2. Create User in Firebase Auth
+      // 1. Create Firebase Auth account first (needed to read other users' docs)
       UserCredential userCredential = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(
         email: _emailController.text.trim(),
@@ -75,14 +68,23 @@ class _SignupScreenState extends State<SignupScreen> {
 
       final String uid = userCredential.user!.uid;
 
+      // 2. Now authenticated — check if username is already taken
+      bool taken = await _isUsernameTaken(username);
+      if (taken) {
+        // Roll back: delete the auth account since username is taken
+        await userCredential.user!.delete();
+        _showError("This username is already taken. Try another.");
+        setState(() => _isLoading = false);
+        return;
+      }
+
       // 3. Save User Profile Data to Firestore
-      // We set 'setupComplete' to false because they still need to pick a currency
       await FirebaseFirestore.instance.collection('users').doc(uid).set({
         'uid': uid,
         'name': _nameController.text.trim(),
         'username': username,
         'email': _emailController.text.trim(),
-        'profileImage': null, // Placeholder for later profile updates
+        'profileImage': null,
         'createdAt': FieldValue.serverTimestamp(),
         'setupComplete': false,
         'totalBalance': 0.0,
@@ -98,7 +100,7 @@ class _SignupScreenState extends State<SignupScreen> {
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (context) => const SelectCurrencyScreen()),
-            (route) => false, // Clear history so they can't go back to signup
+            (route) => false,
       );
 
     } on FirebaseAuthException catch (e) {
@@ -107,7 +109,8 @@ class _SignupScreenState extends State<SignupScreen> {
       if (e.code == 'weak-password') msg = "Password is too weak.";
       _showError(msg);
     } catch (e) {
-      _showError("An unexpected error occurred. Please try again.");
+      debugPrint("❌ Signup error: $e");
+      _showError("Error: ${e.toString().replaceAll('Exception: ', '')}");
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
