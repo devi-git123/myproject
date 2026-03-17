@@ -17,17 +17,29 @@ import 'package:flutter/foundation.dart'
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
-      return web;
+      throw UnsupportedError(
+        'DefaultFirebaseOptions have not been configured for web - '
+        'you can reconfigure this by running the FlutterFire CLI again.',
+      );
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
         return android;
       case TargetPlatform.iOS:
-        return ios;
+        throw UnsupportedError(
+          'DefaultFirebaseOptions have not been configured for iOS - '
+          'you can reconfigure this by running the FlutterFire CLI again.',
+        );
       case TargetPlatform.macOS:
-        return macos;
+        throw UnsupportedError(
+          'DefaultFirebaseOptions have not been configured for macOS - '
+          'you can reconfigure this by running the FlutterFire CLI again.',
+        );
       case TargetPlatform.windows:
-        return windows;
+        throw UnsupportedError(
+          'DefaultFirebaseOptions have not been configured for windows - '
+          'you can reconfigure this by running the FlutterFire CLI again.',
+        );
       case TargetPlatform.linux:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for linux - '
@@ -40,49 +52,12 @@ class DefaultFirebaseOptions {
     }
   }
 
-  static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyBmleGAjFYpyVxyTUoR9freReKxKvzF9iI',
-    appId: '1:1015364231733:web:ecdb30e84253b505f5077c',
-    messagingSenderId: '1015364231733',
-    projectId: 'mybudget-tracker-app',
-    authDomain: 'mybudget-tracker-app.firebaseapp.com',
-    storageBucket: 'mybudget-tracker-app.firebasestorage.app',
-    measurementId: 'G-L5DBR7VEXX',
-  );
-
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyCZHHqpLqkuSySPgMc8Y9I0-P2K8WuQS1U',
-    appId: '1:1015364231733:android:529e27383c9b0696f5077c',
-    messagingSenderId: '1015364231733',
-    projectId: 'mybudget-tracker-app',
-    storageBucket: 'mybudget-tracker-app.firebasestorage.app',
-  );
-
-  static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyD4uJ50Aol-8mMKg0u8fCfTEC-zaPFk2FI',
-    appId: '1:1015364231733:ios:097f87e3a9abef08f5077c',
-    messagingSenderId: '1015364231733',
-    projectId: 'mybudget-tracker-app',
-    storageBucket: 'mybudget-tracker-app.firebasestorage.app',
-    iosBundleId: 'com.example.myproject',
-  );
-
-  static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyD4uJ50Aol-8mMKg0u8fCfTEC-zaPFk2FI',
-    appId: '1:1015364231733:ios:097f87e3a9abef08f5077c',
-    messagingSenderId: '1015364231733',
-    projectId: 'mybudget-tracker-app',
-    storageBucket: 'mybudget-tracker-app.firebasestorage.app',
-    iosBundleId: 'com.example.myproject',
-  );
-
-  static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyBmleGAjFYpyVxyTUoR9freReKxKvzF9iI',
-    appId: '1:1015364231733:web:e375d2447c3b28f3f5077c',
-    messagingSenderId: '1015364231733',
-    projectId: 'mybudget-tracker-app',
-    authDomain: 'mybudget-tracker-app.firebaseapp.com',
-    storageBucket: 'mybudget-tracker-app.firebasestorage.app',
-    measurementId: 'G-BGRM89XFQ7',
+    apiKey: 'AIzaSyDb2o3vLjjoe30XmS33LhHvN9uZu6iXcYE',
+    appId: '1:277820293441:android:45271bc34ac6df8ed2a1c0',
+    messagingSenderId: '277820293441',
+    projectId: 'mybudget-tracker-app-9d06a',
+    databaseURL: 'https://mybudget-tracker-app-9d06a-default-rtdb.asia-southeast1.firebasedatabase.app',
+    storageBucket: 'mybudget-tracker-app-9d06a.firebasestorage.app',
   );
 }
