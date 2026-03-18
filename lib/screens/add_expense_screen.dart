@@ -17,32 +17,11 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   late TextEditingController _amountController;
   final TextEditingController _titleController = TextEditingController();
   bool _isSaving = false;
-  String _currencySymbol = "LKR";
 
   @override
   void initState() {
     super.initState();
     _amountController = TextEditingController(text: widget.initialAmount ?? "");
-    _loadCurrency();
-  }
-
-  Future<void> _loadCurrency() async {
-    try {
-      final String? uid = FirebaseAuth.instance.currentUser?.uid;
-      if (uid != null) {
-        final userDoc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
-        if (userDoc.exists) {
-          var userData = userDoc.data() as Map<String, dynamic>?;
-          if (mounted) {
-            setState(() {
-              _currencySymbol = userData?['currencySymbol'] ?? userData?['currencyCode'] ?? "LKR";
-            });
-          }
-        }
-      }
-    } catch (e) {
-      debugPrint('Error loading currency: $e');
-    }
   }
 
   @override
@@ -106,9 +85,9 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
             const SizedBox(height: 20),
             TextField(
               controller: _amountController,
-              decoration: InputDecoration(
-                labelText: "Amount ($_currencySymbol)",
-                border: const OutlineInputBorder(),
+              decoration: const InputDecoration(
+                labelText: "Amount (LKR)",
+                border: OutlineInputBorder(),
               ),
               keyboardType: TextInputType.number,
             ),

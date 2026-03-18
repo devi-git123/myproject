@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'goal_contribution_screen.dart';
 
 class AddCategoryScreen extends StatefulWidget {
   const AddCategoryScreen({super.key});
@@ -22,7 +21,6 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
   bool _isProcessing = false;
   String _selectedType = 'Expense';
   IconData _selectedIcon = Icons.restaurant;
-  String _currencySymbol = "LKR";
 
   // Curated list of icons for budget categories
   final List<IconData> _availableIcons = [
@@ -32,31 +30,6 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
     Icons.water_drop, Icons.coffee, Icons.build, Icons.subscriptions,
     Icons.payments, Icons.trending_up, Icons.work, Icons.redeem
   ];
-
-  @override
-  void initState() {
-    super.initState();
-    _loadCurrency();
-  }
-
-  Future<void> _loadCurrency() async {
-    try {
-      final String? uid = FirebaseAuth.instance.currentUser?.uid;
-      if (uid != null) {
-        final userDoc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
-        if (userDoc.exists) {
-          var userData = userDoc.data() as Map<String, dynamic>?;
-          if (mounted) {
-            setState(() {
-              _currencySymbol = userData?['currencySymbol'] ?? userData?['currencyCode'] ?? "LKR";
-            });
-          }
-        }
-      }
-    } catch (e) {
-      debugPrint('Error loading currency: $e');
-    }
-  }
 
   @override
   void dispose() {
@@ -128,69 +101,9 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
 
       await batch.commit();
 
-      // Check if expense exceeds budget and create notification
-      if (_selectedType == 'Expense') {
-        // Query all transactions for this category to calculate total spent
-        final categoryTransactions = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(uid)
-            .collection('transactions')
-            .where('category', isEqualTo: name)
-            .where('type', isEqualTo: 'Expense')
-            .get();
-
-        double totalSpent = 0;
-        for (var doc in categoryTransactions.docs) {
-          totalSpent += ((doc.data()['amount'] ?? 0) as num).toDouble();
-        }
-
-        // If total spent exceeds allocated budget, create warning notification
-        if (totalSpent > amount) {
-          await FirebaseFirestore.instance
-              .collection('users')
-              .doc(uid)
-              .collection('notifications')
-              .add({
-            'title': '⚠️ Budget Alert',
-            'message': 'You have exceeded your budget for "$name"! Spent: $_currencySymbol ${totalSpent.toStringAsFixed(0)} / Budget: $_currencySymbol ${amount.toStringAsFixed(0)}',
-            'type': 'warning',
-            'timestamp': FieldValue.serverTimestamp(),
-          });
-        }
-      }
-
       if (mounted) {
         _showSnackBar("Successfully added!");
-        
-        // If it's an Income transaction, check if user has goals before navigating
-        if (_selectedType == 'Income') {
-          // Check if user has any active goals
-          final goalsSnapshot = await FirebaseFirestore.instance
-              .collection('users')
-              .doc(uid)
-              .collection('goals')
-              .limit(1)
-              .get();
-          
-          if (mounted) {
-            Navigator.pop(context);
-            
-            // Only navigate to goal contribution screen if goals exist
-            if (goalsSnapshot.docs.isNotEmpty) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => GoalContributionScreen(
-                    uid: uid!,
-                    incomeAmount: amount,
-                  ),
-                ),
-              );
-            }
-          }
-        } else {
-          Navigator.pop(context);
-        }
+        Navigator.pop(context);
       }
     } catch (e) {
       _showSnackBar("Error: ${e.toString()}", isError: true);
@@ -248,7 +161,7 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
                 style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 decoration: InputDecoration(
                   hintText: "0.00",
-                  prefixText: "$_currencySymbol ",
+                  prefixText: "LKR ",
                   prefixIcon: Icon(Icons.account_balance_wallet_outlined, color: _activeColor),
                   border: InputBorder.none,
                 ),
