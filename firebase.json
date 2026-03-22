@@ -1,1 +1,21 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"mybudget-tracker-app","appId":"1:1015364231733:android:529e27383c9b0696f5077c","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"mybudget-tracker-app","configurations":{"android":"1:1015364231733:android:529e27383c9b0696f5077c","ios":"1:1015364231733:ios:097f87e3a9abef08f5077c","macos":"1:1015364231733:ios:097f87e3a9abef08f5077c","web":"1:1015364231733:web:ecdb30e84253b505f5077c","windows":"1:1015364231733:web:e375d2447c3b28f3f5077c"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "mybudget-tracker-app-9d06a",
+          "appId": "1:277820293441:android:45271bc34ac6df8ed2a1c0",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "mybudget-tracker-app-9d06a",
+          "configurations": {
+            "android": "1:277820293441:android:45271bc34ac6df8ed2a1c0"
+          }
+        }
+      }
+    }
+  }
+}
